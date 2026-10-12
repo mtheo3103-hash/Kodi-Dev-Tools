@@ -7,67 +7,85 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <style>body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }</style>
+    <style>
+        body { font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    </style>
 </head>
-<body class="bg-[#12161c] text-[#e1e7ed] h-full flex flex-col">
-    <!-- Header -->
-    <header class="bg-[#1a212c] border-b border-[#2a3444] px-6 py-3 flex justify-between items-center">
+<body class="bg-[#121212] text-[#e0e0e0] h-full flex flex-col font-sans">
+
+    <!-- Top App Bar (Android Material Style) -->
+    <header class="bg-[#1e1e1e] border-b border-[#2c2c2c] px-6 py-3 flex justify-between items-center shadow-md">
         <div class="flex items-center space-x-3">
-            <a href="../index.html" class="bg-[#e53935] text-white font-bold px-2.5 py-1 rounded text-xs">KDT</a>
-            <span class="font-semibold text-sm text-white">Addon Maker</span>
+            <a href="../index.html" class="bg-[#6200ee] text-white font-bold px-3 py-1 rounded text-xs tracking-wider uppercase">KDT</a>
+            <span class="font-medium text-sm text-white">Addon Maker</span>
         </div>
         <div id="auth-header" class="flex items-center space-x-3 text-xs"></div>
     </header>
 
-    <!-- Workspace -->
+    <!-- Main Workspace (Drawer + Canvas) -->
     <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
-        <!-- Sidebar -->
-        <div class="w-full md:w-64 bg-[#1a212c] border-r border-[#2a3444] flex flex-col p-3 space-y-3">
-            <button onclick="saveProject()" class="w-full bg-[#2a3444] hover:bg-[#344256] text-white text-xs font-medium py-2 px-3 rounded transition flex items-center justify-center">
+        
+        <!-- Navigation Drawer / Sidebar -->
+        <div class="w-full md:w-64 bg-[#1e1e1e] border-r border-[#2c2c2c] flex flex-col p-4 space-y-4">
+            
+            <!-- Save Button (Android Filled Button) -->
+            <button onclick="saveProject()" class="w-full bg-[#6200ee] hover:bg-[#3700b3] active:bg-[#03dac6] active:text-black text-white text-xs font-medium py-2.5 px-4 rounded-full transition flex items-center justify-center shadow">
                 <i class="fa-solid fa-cloud-arrow-up mr-2"></i>In MongoDB speichern
             </button>
-            <div>
-                <label class="text-[11px] text-[#8ca0b3] block mb-1">Addon ID</label>
-                <input type="text" id="addon-id" value="plugin.video.betterkeybinds" class="w-full bg-[#12161c] border border-[#2a3444] rounded p-2 text-xs text-white focus:border-[#e53935] focus:outline-none">
+
+            <!-- Inputs & Metadata -->
+            <div class="space-y-1">
+                <label class="text-[11px] text-[#a0a0a0] font-medium block">Addon ID</label>
+                <input type="text" id="addon-id" value="plugin.video.betterkeybinds" class="w-full bg-[#121212] border border-[#3c3c3c] rounded-md p-2 text-xs text-white focus:border-[#bb86fc] focus:outline-none transition">
             </div>
-            <div class="text-[11px] text-[#8ca0b3] font-medium pt-2">Dateien</div>
-            <div id="file-list" class="space-y-1"></div>
+
+            <!-- File Explorer Section -->
+            <div class="pt-2">
+                <span class="text-[11px] text-[#a0a0a0] font-semibold uppercase tracking-wider block mb-2">Dateien</span>
+                <div id="file-list" class="space-y-1"></div>
+            </div>
         </div>
 
-        <!-- Editor Area -->
-        <div class="flex-1 flex flex-col">
-            <div class="bg-[#1a212c] border-b border-[#2a3444] px-4 py-2.5 flex justify-between items-center">
-                <span id="active-file" class="font-mono text-xs text-[#e53935] font-medium">default.py</span>
-                <button onclick="publish()" class="bg-[#e53935] hover:bg-[#d32f2f] text-white text-xs font-medium px-3 py-1.5 rounded transition flex items-center">
-                    <i class="fa-brands fa-github mr-1.5"></i>Auf GitHub pushen
+        <!-- Code Editor Surface -->
+        <div class="flex-1 flex flex-col bg-[#121212]">
+            <!-- Editor Toolbar -->
+            <div class="bg-[#1e1e1e] border-b border-[#2c2c2c] px-4 py-2.5 flex justify-between items-center">
+                <span id="active-file" class="font-mono text-xs text-[#bb86fc] font-medium">default.py</span>
+                
+                <button onclick="publish()" class="bg-[#03dac6] hover:bg-[#018786] text-black text-xs font-semibold px-4 py-1.5 rounded-full transition flex items-center shadow">
+                    <i class="fa-brands fa-github mr-2"></i>Auf GitHub pushen
                 </button>
             </div>
-            <textarea id="code-editor" class="w-full flex-1 bg-[#0d1015] font-mono text-xs p-4 text-[#e1e7ed] resize-none focus:outline-none leading-relaxed" spellcheck="false"></textarea>
+
+            <!-- Code Area -->
+            <textarea id="code-editor" class="w-full flex-1 bg-[#090909] font-mono text-xs p-4 text-[#e0e0e0] resize-none focus:outline-none leading-relaxed" spellcheck="false"></textarea>
         </div>
     </main>
 
-    <!-- Modals -->
-    <div id="auth-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-[#1a212c] border border-[#2a3444] w-full max-w-sm rounded-lg p-5 space-y-4 relative">
-            <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="absolute top-4 right-4 text-[#8ca0b3] hover:text-white">✕</button>
-            <h3 id="auth-title" class="font-semibold text-sm text-white">Anmelden</h3>
-            <input type="text" id="auth-user" placeholder="Benutzername" class="w-full bg-[#12161c] border border-[#2a3444] rounded p-2 text-xs text-white focus:outline-none">
-            <input type="password" id="auth-pass" placeholder="Passwort" class="w-full bg-[#12161c] border border-[#2a3444] rounded p-2 text-xs text-white focus:outline-none">
-            <button onclick="submitAuth()" class="w-full bg-[#e53935] text-white text-xs font-medium p-2 rounded">Bestätigen</button>
-            <button onclick="toggleAuthMode()" class="text-[11px] text-[#8ca0b3] w-full text-center hover:text-white">Modus wechseln (Login / Registrieren)</button>
+    <!-- Modal: Auth (Android Material Card Dialog) -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-[#1e1e1e] border border-[#3c3c3c] w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl relative">
+            <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="absolute top-4 right-4 text-[#a0a0a0] hover:text-white">✕</button>
+            <h3 id="auth-title" class="font-medium text-base text-white">Anmelden</h3>
+            <input type="text" id="auth-user" placeholder="Benutzername" class="w-full bg-[#121212] border border-[#3c3c3c] rounded-lg p-2.5 text-xs text-white focus:border-[#bb86fc] focus:outline-none">
+            <input type="password" id="auth-pass" placeholder="Passwort" class="w-full bg-[#121212] border border-[#3c3c3c] rounded-lg p-2.5 text-xs text-white focus:border-[#bb86fc] focus:outline-none">
+            <button onclick="submitAuth()" class="w-full bg-[#6200ee] hover:bg-[#3700b3] text-white text-xs font-semibold p-2.5 rounded-full shadow">Bestätigen</button>
+            <button onclick="toggleAuthMode()" class="text-[11px] text-[#bb86fc] w-full text-center hover:underline">Modus wechseln (Login / Registrieren)</button>
         </div>
     </div>
 
-    <div id="settings-modal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-[#1a212c] border border-[#2a3444] w-full max-w-sm rounded-lg p-5 space-y-4 relative">
-            <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="absolute top-4 right-4 text-[#8ca0b3] hover:text-white">✕</button>
-            <h3 class="font-semibold text-sm text-white">GitHub Token Einstellungen</h3>
-            <input type="password" id="set-token" placeholder="GitHub Personal Access Token (ghp_...)" class="w-full bg-[#12161c] border border-[#2a3444] rounded p-2 text-xs text-white focus:outline-none">
-            <input type="text" id="set-repo" value="mtheo3103-hash/KDT" class="w-full bg-[#12161c] border border-[#2a3444] rounded p-2 text-xs text-white focus:outline-none">
-            <button onclick="saveSettings()" class="w-full bg-[#2a3444] hover:bg-[#344256] text-white text-xs font-medium p-2 rounded">Speichern</button>
+    <!-- Modal: Settings -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-[#1e1e1e] border border-[#3c3c3c] w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl relative">
+            <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="absolute top-4 right-4 text-[#a0a0a0] hover:text-white">✕</button>
+            <h3 class="font-medium text-base text-white">GitHub Token Einstellungen</h3>
+            <input type="password" id="set-token" placeholder="GitHub Personal Access Token (ghp_...)" class="w-full bg-[#121212] border border-[#3c3c3c] rounded-lg p-2.5 text-xs text-white focus:border-[#bb86fc] focus:outline-none">
+            <input type="text" id="set-repo" value="mtheo3103-hash/KDT" class="w-full bg-[#121212] border border-[#3c3c3c] rounded-lg p-2.5 text-xs text-white focus:border-[#bb86fc] focus:outline-none">
+            <button onclick="saveSettings()" class="w-full bg-[#03dac6] text-black font-semibold text-xs p-2.5 rounded-full shadow">Speichern</button>
         </div>
     </div>
 
+    <!-- Logic -->
     <script>
         const API_URL = 'https://kdt-backend-h2p7.onrender.com/api';
         let token = localStorage.getItem('kdt_token') || '';
@@ -91,13 +109,14 @@
         function updateHeader() {
             const h = document.getElementById('auth-header');
             if(token) {
-                h.innerHTML = `<span class="text-[#8ca0b3]">${username} <span class="text-[10px] text-zinc-500">(ID: ${userId})</span></span><button onclick="document.getElementById('settings-modal').classList.remove('hidden')" class="text-[#8ca0b3] hover:text-white ml-2"><i class="fa-solid fa-gear"></i></button><button onclick="logout()" class="text-[#e53935] hover:underline ml-2">Logout</button>`;
+                h.innerHTML = `<span class="text-[#a0a0a0]">${username} <span class="text-[10px] text-[#bb86fc]">(ID: ${userId})</span></span><button onclick="document.getElementById('settings-modal').classList.remove('hidden')" class="text-[#a0a0a0] hover:text-white ml-2"><i class="fa-solid fa-gear"></i></button><button onclick="logout()" class="text-[#cf6679] hover:underline ml-2">Logout</button>`;
             } else {
-                h.innerHTML = `<button onclick="document.getElementById('auth-modal').classList.remove('hidden')" class="bg-[#2a3444] hover:bg-[#344256] text-white px-3 py-1 rounded text-xs font-medium">Login</button>`;
+                h.innerHTML = `<button onclick="document.getElementById('auth-modal').classList.remove('hidden')" class="bg-[#2c2c2c] hover:bg-[#3c3c3c] text-white px-3 py-1.5 rounded-full text-xs font-medium transition">Login</button>`;
             }
         }
 
         function toggleAuthMode() { isReg = !isReg; document.getElementById('auth-title').innerText = isReg ? 'Registrieren' : 'Anmelden'; }
+        
         async function submitAuth() {
             const u = document.getElementById('auth-user').value;
             const p = document.getElementById('auth-pass').value;
@@ -107,11 +126,14 @@
             if(isReg) { alert(`Registriert! Deine ID ist: ${d.userId}. Bitte jetzt einloggen.`); toggleAuthMode(); }
             else { token = d.token; username = d.username; userId = d.userId; localStorage.setItem('kdt_token', token); localStorage.setItem('kdt_user', username); localStorage.setItem('kdt_userid', userId); document.getElementById('auth-modal').classList.add('hidden'); updateHeader(); alert('Eingeloggt!'); }
         }
+
         function logout() { localStorage.clear(); token=''; username=''; userId=''; updateHeader(); }
+
         async function saveSettings() {
             await fetch(API_URL + '/settings', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':`Bearer ${token}`}, body:JSON.stringify({githubToken:document.getElementById('set-token').value, githubRepo:document.getElementById('set-repo').value})});
             alert('Einstellungen gespeichert!'); document.getElementById('settings-modal').classList.add('hidden');
         }
+
         async function saveProject() {
             if(!token) return alert('Bitte erst einloggen!');
             const name = document.getElementById('addon-id').value;
@@ -119,12 +141,14 @@
             const d = await res.json();
             alert(d.message || 'Erfolgreich gespeichert!');
         }
+
         function renderFileList() {
             const l = document.getElementById('file-list'); l.innerHTML = '';
             Object.keys(files).forEach(f => {
-                l.innerHTML += `<div onclick="currentFile='${f}'; document.getElementById('active-file').innerText='${f}'; document.getElementById('code-editor').value=files['${f}']; renderFileList();" class="p-2 rounded text-xs cursor-pointer ${f===currentFile?'bg-[#2a3444] text-white font-medium':'text-[#8ca0b3] hover:bg-[#2a3444]/50'}">${f}</div>`;
+                l.innerHTML += `<div onclick="currentFile='${f}'; document.getElementById('active-file').innerText='${f}'; document.getElementById('code-editor').value=files['${f}']; renderFileList();" class="p-2.5 rounded-lg text-xs cursor-pointer transition ${f===currentFile?'bg-[#2c2c2c] text-[#bb86fc] font-medium shadow-sm':'text-[#a0a0a0] hover:bg-[#252525]'}">${f}</div>`;
             });
         }
+
         async function publish() {
             if(!token) return alert('Bitte erst einloggen!');
             const id = document.getElementById('addon-id').value;
