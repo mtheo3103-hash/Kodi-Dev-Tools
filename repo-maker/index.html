@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDT - Repo & Media Source Maker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>body { font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }</style>
+</head>
+<body class="bg-[#121212] text-[#e0e0e0] h-full flex flex-col font-sans">
+    <header class="bg-[#1e1e1e] border-b border-[#2c2c2c] px-6 py-3 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-3">
+            <a href="../index.html" class="bg-[#6200ee] text-white font-bold px-3 py-1 rounded text-xs uppercase">KDT</a>
+            <span class="font-medium text-sm text-white">Repo & Media Source Maker</span>
+        </div>
+    </header>
+
+    <main class="flex-1 p-8 max-w-2xl mx-auto w-full flex items-center justify-center">
+        <div class="bg-[#1e1e1e] border border-[#3c3c3c] w-full rounded-2xl p-6 space-y-6 shadow-2xl">
+            <h2 class="font-medium text-base text-white border-b border-[#2c2c2c] pb-3">Kodi Repository Media Source Generator</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-[#a0a0a0] mb-1">Repository Name (z.B. repository.kdt)</label>
+                    <input type="text" id="repo-name" value="repository.kdt" class="w-full bg-[#121212] border border-[#3c3c3c] rounded-lg p-2.5 text-xs text-white focus:border-[#bb86fc] focus:outline-none">
+                </div>
+                <div class="bg-[#121212] border border-[#2c2c2c] p-4 rounded-xl space-y-1">
+                    <span class="text-xs font-medium text-[#bb86fc]"><i class="fa-solid fa-circle-info mr-1.5"></i>Kodi Verwendung</span>
+                    <p class="text-[11px] text-[#a0a0a0] leading-relaxed">Generiert die notwendigen `addon.xml`-Strukturen und pusht sie direkt nach GitHub Pages. Der finale Link kann in Kodi als Medienquelle hinzugefügt werden.</p>
+                </div>
+            </div>
+
+            <button onclick="publishKodiRepo()" class="w-full bg-[#03dac6] hover:bg-[#018786] text-black text-xs font-semibold p-3 rounded-full transition shadow flex items-center justify-center">
+                <i class="fa-brands fa-github mr-2 text-sm"></i>Repository auf GitHub pushen & Link generieren
+            </button>
+            
+            <div id="result-box" class="hidden space-y-2 pt-2 border-t border-[#2c2c2c]">
+                <label class="block text-xs font-medium text-[#03dac6]">Dein direkter Kodi Media Source Link:</label>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="kodi-url-output" readonly class="w-full bg-[#121212] border border-[#3c3c3c] rounded-lg p-2 text-xs font-mono text-white select-all">
+                    <button onclick="copyRepoUrl()" class="bg-[#2c2c2c] hover:bg-[#3c3c3c] text-white px-3 py-2 rounded-lg text-xs transition"><i class="fa-regular fa-copy"></i></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'https://kdt-backend-h2p7.onrender.com/api';
+        const token = localStorage.getItem('kdt_token') || '';
+
+        async function publishKodiRepo() {
+            if(!token) return alert('Bitte zuerst im Addon Maker einloggen und GitHub Token hinterlegen!');
+            const repoName = document.getElementById('repo-name').value.trim();
+            if(!repoName) return alert('Bitte Repository-Namen eingeben!');
+
+            const addonXmlContent = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<addon id="${repoName}" name="${repoName}" version="1.0.0" provider-name="KDT">\n    <requires>\n        <import addon="xbmc.python" version="3.0.0"/>\n    </requires>\n    <extension point="xbmc.addon.metadata">\n        <platform>all</platform>\n        <summary lang="en">Kodi Repository generated via KDT</summary>\n    </extension>\n</addon>`;
+            const introHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${repoName}</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="bg-[#121212] text-[#e0e0e0] min-h-screen flex items-center justify-center p-6"><div class="max-w-md w-full bg-[#1e1e1e] border border-[#3c3c3c] rounded-2xl p-8 text-center space-y-4 shadow-2xl"><h1 class="text-xl font-bold text-[#bb86fc]">${repoName}</h1><p class="text-xs text-[#a0a0a0]">Kodi Media Source Repository</p></div></body></html>`;
+
+            const files = [
+                { path: `repo/${repoName}/addon.xml`, content: addonXmlContent },
+                { path: `repo/${repoName}/index.html`, content: introHtml }
+            ];
+
+            try {
+                const res = await fetch(API_URL + '/publish-github', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json', 'Authorization':`Bearer ${token}`},
+                    body: JSON.stringify({files})
+                });
+                const d = await res.json();
+                if(!res.ok) return alert(d.error || 'Fehler beim Pushen');
+
+                const directUrl = `https://mtheo3103-hash.github.io/KDT/repo/${repoName}/`;
+                document.getElementById('kodi-url-output').value = directUrl;
+                document.getElementById('result-box').classList.remove('hidden');
+                alert('Erfolgreich auf GitHub veröffentlicht!');
+            } catch (err) {
+                alert('Verbindungsfehler: ' + err.message);
+            }
+        }
+
+        function copyRepoUrl() {
+            const copyText = document.getElementById('kodi-url-output');
+            copyText.select();
+            document.execCommand('copy');
+            alert('Link kopiert!');
+        }
+    </script>
+</body>
+</html>
